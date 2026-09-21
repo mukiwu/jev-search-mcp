@@ -10,6 +10,7 @@ function harness({ fetchImpl, options } = {}) {
   const hooks = new Map();
   const logs = [];
   const statuses = [];
+  const toasts = [];
   const calls = [];
   const on = (event, matcher, hook) => {
     hooks.set(event, { matcher, hook });
@@ -23,7 +24,11 @@ function harness({ fetchImpl, options } = {}) {
         return fetchImpl ? fetchImpl(url, init) : { status: 200, ok: true, headers: {}, text: NDJSON };
       },
     },
-    ui: { log: (text, opts) => logs.push({ text, opts }), status: (text) => statuses.push(text) },
+    ui: {
+      log: (text, opts) => logs.push({ text, opts }),
+      status: (text) => statuses.push(text),
+      toast: (text) => toasts.push(text),
+    },
   };
   let nextCalls = 0;
   const next = Object.assign(
@@ -33,7 +38,7 @@ function harness({ fetchImpl, options } = {}) {
     },
     { signal: new AbortController().signal }
   );
-  return { hooks, $, next, logs, statuses, calls, nextCalls: () => nextCalls };
+  return { hooks, $, next, logs, statuses, toasts, calls, nextCalls: () => nextCalls };
 }
 
 const CALL = { tool: 'WebSearch', tool_use_id: 'toolu_42', query: 'hello world' };
@@ -58,6 +63,7 @@ test('tool.call answers with a WebSearch-shaped result from Jev and never calls 
   assert.equal(sent.init.headers.Origin, 'https://jev.s1.dev');
   assert.deepEqual(JSON.parse(sent.init.body), { q: 'hello world' });
   assert.deepEqual(h.statuses, ['Jev Search…', undefined]);
+  assert.deepEqual(h.toasts, ['Jev Search: 3 results via google, duckduckgo in 1.2s']);
 });
 
 test('tool.call forwards allowed domains as sources and filters blocked ones', async () => {
@@ -73,6 +79,7 @@ test('tool.call falls back to the built-in tool when Jev returns an error status
   assert.deepEqual(out.result.results, ['core answered']);
   assert.match(h.logs.at(-1).text, /unavailable.*429.*Too many searches/);
   assert.equal(h.logs.at(-1).opts, undefined, 'the fallback notice goes to the transcript');
+  assert.deepEqual(h.toasts, [], 'no success toast on a fallback');
 });
 
 test('tool.call falls back when the network throws', async () => {

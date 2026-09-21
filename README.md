@@ -29,7 +29,7 @@ claude plugin install jev-search@muki-ai-plugins
 
 之後你會得到：
 
-- **WebSearch 由 Jev 回答**。模型讀到的格式跟內建一樣，多一行 Answered by Jev Search 和帶相關度百分比的排序清單。Jev 回錯誤、被限流、網路不通、或網域過濾後一筆都不剩，就自動退回內建 WebSearch，對話裡會留一行暗色提示
+- **WebSearch 由 Jev 回答**。模型讀到的格式跟內建一樣，多一行 Answered by Jev Search 和帶相關度百分比的排序清單。搜完通知列會跳一行 Jev Search: N results via 哪些來源 in 幾秒。Jev 回錯誤、被限流、網路不通、或網域過濾後一筆都不剩，就自動退回內建 WebSearch，對話裡會留一行暗色提示
 - **WebSearch 的描述多一段提醒**，讓模型把查詢寫成一句話，需要時用文字點名站台或時間範圍
 - **一個 `jev_search` MCP 工具**，要明確指定 `sources` 或 `window` 時用
 - **一個 `jev-search` skill**，教模型什麼時候該用、怎麼下請求

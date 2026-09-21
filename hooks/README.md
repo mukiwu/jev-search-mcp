@@ -4,7 +4,7 @@
 
 ## 它做的兩件事
 
-1. `tool.call`，matcher `{ tool: "WebSearch" }`：模型每次呼叫內建 WebSearch，hook 先把 `query`、`allowed_domains`、`blocked_domains` 換成一個 Jev Search 請求，透過 `$.http.fetch` 打 `POST /api/ask`，把 NDJSON 收成一份結果，再組成 WebSearch 輸出 schema 要的形狀回給引擎。模型讀到的格式跟內建的一樣，開頭多一行 Answered by Jev Search，接著是帶相關度百分比的排序清單
+1. `tool.call`，matcher `{ tool: "WebSearch" }`：模型每次呼叫內建 WebSearch，hook 先把 `query`、`allowed_domains`、`blocked_domains` 換成一個 Jev Search 請求，透過 `$.http.fetch` 打 `POST /api/ask`，把 NDJSON 收成一份結果，再組成 WebSearch 輸出 schema 要的形狀回給引擎。模型讀到的格式跟內建的一樣，開頭多一行 Answered by Jev Search，接著是帶相關度百分比的排序清單。搜尋中輸入框下方會釘一行 Jev Search…，成功後通知列跳一行 Jev Search: N results via 哪些來源 in 幾秒，幾秒後自己消掉
 2. `tool.describe`，同樣的 matcher：在 WebSearch 的描述尾端補一段話，提醒模型把查詢寫成一句話、需要時用文字點名站台或時間範圍
 
 ## 什麼時候退回內建

@@ -44,7 +44,7 @@ export async function answerWithJev($, e, settings) {
     maxResults: settings.maxResults,
     durationSeconds: Math.round((Date.now() - started) / 100) / 10,
   });
-  return hits > 0 ? { result, folded } : null;
+  return hits > 0 ? { result, folded, hits } : null;
 }
 
 /**
@@ -69,7 +69,9 @@ export function register(on, options) {
         return next(e);
       }
       const { intent, totalMs } = answer.folded;
-      $.ui.log(`Jev Search answered WebSearch via ${intent.sources.join(', ')} in ${((totalMs ?? 0) / 1000).toFixed(1)}s`, { to: 'debug' });
+      const summary = `${answer.hits} result${answer.hits === 1 ? '' : 's'} via ${intent.sources.join(', ')} in ${((totalMs ?? 0) / 1000).toFixed(1)}s`;
+      $.ui.toast(`Jev Search: ${summary}`);
+      $.ui.log(`Jev Search answered WebSearch: ${summary}`, { to: 'debug' });
       return { result: answer.result };
     } catch (error) {
       if (next.signal.aborted) throw error;
