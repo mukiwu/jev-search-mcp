@@ -1,6 +1,6 @@
 {
   "name": "jev-search-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Jev Search as an MCP server and CLI: plain-language web search with sources and time window chosen by Jev, results ranked by relevance. Zero runtime dependencies.",
   "type": "module",
   "bin": {
@@ -16,7 +16,9 @@
     "start": "node src/server.js",
     "test": "node --test 'test/*.test.js'",
     "smoke": "node scripts/smoke.js",
-    "validate": "claude plugin validate ."
+    "typecheck:hooks": "tsc -p tsconfig.hooks.json",
+    "validate": "claude plugin validate .claude-plugin/plugin.json",
+    "validate:marketplace": "claude plugin validate ."
   },
   "engines": {
     "node": ">=22"
@@ -45,6 +47,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0"
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "typescript": "^5.9.3"
   }
 }

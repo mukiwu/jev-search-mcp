@@ -1,53 +1,56 @@
 # jev-search-mcp
 
-[Jev Search](https://github.com/superagents-lab/jev-search) as an MCP server, a Claude Code plugin and a CLI, with zero runtime dependencies
+Jev Search for Claude Code and Codex: a function-hook plugin that answers the built-in WebSearch with Jev, plus the same search as an MCP server, a CLI and a skill. Zero runtime dependencies
 
-把 Jev Search 包成 MCP server、Claude Code plugin 和 CLI，讓 Claude Code 和 Codex 查網路資料時改走 Jev，不用內建的 web search
+把 [Jev Search](https://github.com/superagents-lab/jev-search) 接進 Claude Code 和 Codex。裝成 Claude Code plugin 時，內建的 WebSearch 會直接由 Jev 回答，Jev 答不出來才退回內建；裝成 npm 套件時，是一個 MCP server 加 CLI，Claude Code、Codex 或任何能跑 shell 的 agent 都能用
 
 Jev Search 的流程是：Jev 模型先讀懂你的一句話，決定要查哪些來源、哪段時間、用什麼關鍵字，再透過 Search1API 同時打 Google、DuckDuckGo、Yandex，必要時加上 Hacker News、Reddit、GitHub、X、arXiv、YouTube、Wikipedia、IMDb、WeChat，最後每一筆結果都由 Jev 打相關度分數。回來的是排好序的連結和摘要，不是生成的答案
 
-## Quick install
+這個 repo 同時是 npm 套件（`src/`）和 Claude Code plugin（`hooks/`、`.claude-plugin/`、`.mcp.json`、`skills/`），plugin 直接用套件裡的純函式，兩邊行為一致
 
-```bash
-# Claude Code plugin (MCP tool + skill), nothing to build
-/plugin marketplace add mukiwu/jev-search-mcp
-/plugin install jev-search@jev-search-mcp
+## 安裝方式一：Claude Code plugin
 
-# Skill only, for Claude Code, Codex, Cursor and friends; the skill calls the CLI through npx
-npx skills add mukiwu/jev-search-mcp
+這是給 Claude Code 使用者的建議路徑，裝完不用改任何指令或習慣，WebSearch 照常呼叫，答案換成 Jev 的
 
-# Plain MCP server
-claude mcp add --scope user jev-search -- npx -y jev-search-mcp
-codex mcp add jev-search -- npx -y jev-search-mcp
+Function hooks 是 Claude Code 的 early access 功能，需要 2.1.271 以上，並且在 Claude Code 讀得到的地方開旗標，例如 `~/.claude/settings.json`：
 
-# One-shot search from the shell
-npx -y jev-search-mcp search "what do Reddit users think of the Framework laptop this month"
+```json
+{ "env": { "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1" } }
 ```
 
-## 三種裝法
+然後把這個 repo 加成 plugin marketplace 並安裝，shell 或 session 裡的斜線指令都可以：
 
-### 1. Claude Code plugin
-
-在 Claude Code 裡執行：
-
-```
-/plugin marketplace add mukiwu/jev-search-mcp
-/plugin install jev-search@jev-search-mcp
+```sh
+claude plugin marketplace add mukiwu/jev-search-mcp
+claude plugin install jev-search@jev-search-mcp
 ```
 
-裝完會多一個 MCP 工具 `jev_search` 和一個同名 skill，skill 負責教模型什麼時候該用、怎麼下一句話的請求。server 直接用你機器上的 Node 22 跑，沒有 npm install 那一步
+安裝時會問三個設定：Jev Search 實例網址、要不要攔截 WebSearch、每次回幾筆，全部維持預設就是打官方的 jev.s1.dev。裝完重啟 Claude Code 或執行 `/reload-plugins`
 
-### 2. 只裝 skill
+之後你會得到：
 
-```bash
-npx skills add mukiwu/jev-search-mcp
+- **WebSearch 由 Jev 回答**。模型讀到的格式跟內建一樣，多一行 Answered by Jev Search 和帶相關度百分比的排序清單。Jev 回錯誤、被限流、網路不通、或網域過濾後一筆都不剩，就自動退回內建 WebSearch，對話裡會留一行暗色提示
+- **WebSearch 的描述多一段提醒**，讓模型把查詢寫成一句話，需要時用文字點名站台或時間範圍
+- **一個 `jev_search` MCP 工具**，要明確指定 `sources` 或 `window` 時用
+- **一個 `jev-search` skill**，教模型什麼時候該用、怎麼下請求
+
+設定之後在 `/config` 裡改，改完 plugin 會重新載入。hook 的細節、退回條件、網域對應表在 [`hooks/README.md`](hooks/README.md)
+
+不想安裝、只想從 checkout 試：
+
+```sh
+CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1 claude --plugin-dir .
 ```
 
-[skills](https://www.npmjs.com/package/skills) CLI 會把 `skills/jev-search/SKILL.md` 裝進 Claude Code、Codex、Cursor 等工具的 skill 目錄。這條路不接 MCP，模型看到 skill 之後會改用 `npx -y jev-search-mcp search "..."` 從 shell 查，所以只要有 Node 22 就能用
+不需要發佈任何東西，marketplace 就是 repo 裡的 `.claude-plugin/marketplace.json`
 
-### 3. 手動接 MCP server
+## 安裝方式二：npm
 
-```bash
+給 Codex、其他 MCP host、或不想開 function hooks 的人。套件零依賴，`npx` 直接跑，需要 Node 22
+
+### 當 MCP server
+
+```sh
 # Claude Code
 claude mcp add --scope user jev-search -- npx -y jev-search-mcp
 
@@ -55,12 +58,12 @@ claude mcp add --scope user jev-search -- npx -y jev-search-mcp
 codex mcp add jev-search -- npx -y jev-search-mcp
 ```
 
-或者 clone 下來直接指到 `src/server.js`，Codex 的桌面版不一定帶著你的 shell PATH，`command` 請寫 node 的絕對路徑：
+Codex 也可以直接寫 `~/.codex/config.toml`，桌面版不一定帶著你的 shell PATH，`command` 建議寫絕對路徑：
 
 ```toml
 [mcp_servers.jev-search]
-command = "/path/to/node"
-args = ["/path/to/jev-search-mcp/src/server.js"]
+command = "npx"
+args = ["-y", "jev-search-mcp"]
 startup_timeout_sec = 20
 tool_timeout_sec = 60
 
@@ -68,12 +71,7 @@ tool_timeout_sec = 60
 JEV_SEARCH_BASE_URL = "https://jev.s1.dev"
 ```
 
-## 讓模型優先用它
-
-工具描述本身已寫明要取代 WebSearch，plugin 附的 skill 也會教模型何時該用。想更明確，在全域指令加一段：
-
-- Claude Code 放在 `~/.claude/CLAUDE.md`
-- Codex 放在 `~/.codex/AGENTS.md`
+這條路不會攔截內建搜尋，要讓模型優先用 `jev_search`，在全域指令加一段，Claude Code 放 `~/.claude/CLAUDE.md`，Codex 放 `~/.codex/AGENTS.md`：
 
 ```
 ## 網頁搜尋先走 jev_search
@@ -84,7 +82,30 @@ JEV_SEARCH_BASE_URL = "https://jev.s1.dev"
 - 拿到連結後要讀全文，照平常的方式抓網頁，Jev 只做搜尋不抓頁面
 ```
 
-想徹底關掉內建搜尋：Claude Code 在 `permissions.deny` 加 `WebSearch`，Codex 在 config.toml 頂層加 `web_search = "disabled"`。但這樣 Jev 被限流時就沒有備援，建議先用上面的軟性做法
+想徹底關掉內建搜尋：Claude Code 在 `permissions.deny` 加 `WebSearch`，Codex 在 config.toml 頂層加 `web_search = "disabled"`。但這樣 Jev 被限流時就沒有備援
+
+### 當 CLI
+
+```sh
+npx -y jev-search-mcp search "what do Reddit users think of the Framework laptop this month"
+npx -y jev-search-mcp search "new papers on speculative decoding" --window 30d --sources arxiv --max 8
+npx -y jev-search-mcp search "bun 1.3 release notes" --json
+```
+
+### 只裝 skill
+
+```sh
+npx skills add mukiwu/jev-search-mcp
+```
+
+[skills](https://www.npmjs.com/package/skills) CLI 會把 `skills/jev-search/SKILL.md` 裝進 Claude Code、Codex、Cursor 等工具的 skill 目錄。這條路不接 MCP，模型看到 skill 之後會改用上面的 CLI 從 shell 查
+
+## 運作方式
+
+1. 請求送到 `POST /api/ask`，帶同源的 `Origin` 標頭，超過 300 字在字邊界截斷
+2. 上游以 NDJSON 串流回 `intent`、每個引擎的 `lane`、最後 `done`，這裡收齊後照上游的規則以 URL 去重合併，同一個 URL 被多個引擎命中會合併成一列
+3. 排序跟網頁版一致：Jev 的相關度百分比優先，同分看幾個引擎命中，再看原始名次，還沒被打分的排最後
+4. 攔截 WebSearch 時，`allowed_domains` 對得上 Jev 來源就直接限制來源，對不上就寫進請求文字並在結果端過濾，`blocked_domains` 只在結果端過濾
 
 ## 它不做什麼
 
@@ -92,18 +113,17 @@ JEV_SEARCH_BASE_URL = "https://jev.s1.dev"
 - 不抓網頁全文，拿到連結後還是用 WebFetch 或原本的方式讀頁面
 - 不儲存查詢紀錄，所有請求直接送到你設定的 Jev Search 實例
 
-## 工具參數
+## 設定
 
-| 參數 | 說明 |
-| --- | --- |
-| `query` | 一句話描述要找什麼，超過 300 字會在字邊界截斷 |
-| `window` | 強制時間範圍，`any`、`24h`、`7d`、`30d`，不填讓 Jev 判斷 |
-| `sources` | 強制來源清單，不填讓 Jev 判斷 |
-| `max_results` | 回傳幾筆，預設 10，最多 40 |
+Plugin 的三個欄位：
 
-CLI 的對應選項是 `--window`、`--sources a,b,c`、`--max n`，加 `--json` 會印原始合併結果
+| 欄位 | 預設 | 說明 |
+| --- | --- | --- |
+| `baseUrl` | `https://jev.s1.dev` | Jev Search 實例，hook 和 MCP server 共用 |
+| `intercept` | `true` | 關掉就不攔 WebSearch，只留 `jev_search` 工具 |
+| `maxResults` | `10` | 攔截 WebSearch 時回幾筆 |
 
-## 環境變數
+MCP server 與 CLI 的環境變數：
 
 | 變數 | 預設 | 說明 |
 | --- | --- | --- |
@@ -111,30 +131,40 @@ CLI 的對應選項是 `--window`、`--sources a,b,c`、`--max n`，加 `--json`
 | `JEV_SEARCH_TIMEOUT_MS` | `35000` | 單次搜尋的逾時，伺服器端本身是 30 秒 |
 | `JEV_SEARCH_MAX_RESULTS` | `10` | 沒填 `max_results` 時的預設筆數 |
 
+`jev_search` 工具與 CLI 的參數：
+
+| 參數 | CLI | 說明 |
+| --- | --- | --- |
+| `query` | 位置參數 | 一句話描述要找什麼 |
+| `window` | `--window` | `any`、`24h`、`7d`、`30d`，不填讓 Jev 判斷 |
+| `sources` | `--sources a,b` | 來源清單，不填讓 Jev 判斷 |
+| `max_results` | `--max` | 回傳幾筆，最多 40 |
+
 ## 自架 Jev Search
 
-官方實例 jev.s1.dev 是別人的帳單，也有每個 IP 每分鐘約 10 次的限制，量大或想穩定就自己架。照上游 README 部署到 Cloudflare Workers，需要 Search1API 的 key 和至少一個 Jev provider 的憑證，架好後把 `JEV_SEARCH_BASE_URL` 指過去即可
+官方實例 jev.s1.dev 是別人的帳單，也有每個 IP 每分鐘約 10 次的限制，量大或想穩定就自己架。照上游 README 部署到 Cloudflare Workers，需要 Search1API 的 key 和至少一個 Jev provider 的憑證，架好後把 plugin 的 `baseUrl` 或環境變數 `JEV_SEARCH_BASE_URL` 指過去即可
 
 本機開發時上游跑在 `http://localhost:3030`，同樣可以直接指過去
 
 ## 開發
 
-```bash
-git clone https://github.com/mukiwu/jev-search-mcp.git
-cd jev-search-mcp
-npm install              # 只裝測試用的 MCP SDK，執行時零依賴
-npm test                 # node:test，含真實 stdio 協定測試，不需要網路
+```sh
+npm install                # 只裝 dev 依賴，執行時零依賴
+npm test                   # node:test，含真實 stdio 協定測試與 hook 測試，不需要網路
+npm run typecheck:hooks    # 用 types/claude-code.d.ts 檢查 hook
+npm run validate           # claude plugin validate
 npm run smoke -- "Rust async runtimes on Hacker News this month"
-npm run validate         # claude plugin validate
 ```
 
-- `src/client.js` 打 `POST /api/ask`，把 NDJSON 串流收成一個結果
-- `src/rank.js` 從上游移植 URL 去重和排序規則，跟網頁版排法一致
+- `src/client.js` 打 `POST /api/ask`，串流或整段文字都能收，純函式部分給 hook 共用
+- `src/rank.js` 從上游移植 URL 去重和排序規則
 - `src/format.js` 把結果排成給模型讀的文字
+- `src/websearch-bridge.js` WebSearch 輸入與 Jev 請求、Jev 結果與 WebSearch 輸出之間的轉換
 - `src/tool.js` 工具定義、參數驗證、設定讀取，server 和 CLI 共用
 - `src/mcp.js` 手寫的 JSON-RPC over stdio，只實作 tools 相關方法
 - `src/server.js` MCP 進入點，`src/cli.js` npx 進入點
-- `.claude-plugin/`、`.mcp.json`、`skills/` 是 Claude Code plugin 的部分，repo 本身就是 marketplace
+- `hooks/jev.js` function hook，見 `hooks/README.md`
+- `types/claude-code.d.ts` Claude Code 的型別快照，用 `/plugin-types` 重新產生
 
 ## 授權
 

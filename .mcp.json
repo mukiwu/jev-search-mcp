@@ -4,7 +4,8 @@
       "command": "node",
       "args": ["${CLAUDE_PLUGIN_ROOT}/src/server.js"],
       "env": {
-        "JEV_SEARCH_BASE_URL": "https://jev.s1.dev"
+        "JEV_SEARCH_BASE_URL": "${user_config.baseUrl}",
+        "JEV_SEARCH_MAX_RESULTS": "${user_config.maxResults}"
       }
     }
   }

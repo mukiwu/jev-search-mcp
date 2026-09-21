@@ -10,7 +10,11 @@ export function canonicalUrl(url) {
     let host = u.hostname.toLowerCase().replace(/^www\./, '');
     if (host === 'twitter.com') host = 'x.com';
     const path = u.pathname.replace(/\/+$/, '').toLowerCase();
-    const params = [...u.searchParams.entries()]
+    // forEach rather than entries(): it is the one iteration method every runtime here declares.
+    /** @type {[string, string][]} */
+    const pairs = [];
+    u.searchParams.forEach((v, k) => pairs.push([k, v]));
+    const params = pairs
       .filter(([k]) => !TRACKING_PARAM.test(k))
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([k, v]) => `${k}=${v}`)
