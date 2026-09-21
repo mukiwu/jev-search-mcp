@@ -25,10 +25,11 @@ claude plugin marketplace add mukiwu/muki-ai-plugins
 claude plugin install jev-search@muki-ai-plugins
 ```
 
-安裝時會問三個設定：Jev Search 實例網址、要不要攔截 WebSearch、每次回幾筆，全部維持預設就是打官方的 jev.s1.dev。裝完重啟 Claude Code 或執行 `/reload-plugins`
+安裝時會問三個設定：Jev Search 實例網址、要不要攔截 WebSearch、每次回幾筆，全部維持預設就是打官方的 jev.s1.dev。裝完重啟 Claude Code 或執行 `/reload-plugins`。不需要在 CLAUDE.md 寫任何東西，引導都由 plugin 自帶
 
 之後你會得到：
 
+- **模型知道 WebSearch 現在是 Jev**。plugin 會在對話開頭的 context 加一小段說明，跟 CLAUDE.md 同一層：一般網路問題先用 WebSearch，幾秒回來、一次跨多站；但問的是精確數字、排名、留言數這類站台資料，而站台又有正規 API 時，模型直接打 API 仍然是更好的選擇，plugin 不會擋
 - **WebSearch 由 Jev 回答**。模型讀到的格式跟內建一樣，多一行 Answered by Jev Search 和帶相關度百分比的排序清單。搜完通知列會跳一行 Jev Search: N results via 哪些來源 in 幾秒。Jev 回錯誤、被限流、網路不通、或網域過濾後一筆都不剩，就自動退回內建 WebSearch，對話裡會留一行暗色提示
 - **WebSearch 的描述多一段提醒**，讓模型把查詢寫成一句話，需要時用文字點名站台或時間範圍
 - **一個 `jev_search` MCP 工具**，要明確指定 `sources` 或 `window` 時用
@@ -120,7 +121,7 @@ Plugin 的三個欄位：
 | 欄位 | 預設 | 說明 |
 | --- | --- | --- |
 | `baseUrl` | `https://jev.s1.dev` | Jev Search 實例，hook 和 MCP server 共用 |
-| `intercept` | `true` | 關掉就不攔 WebSearch，只留 `jev_search` 工具 |
+| `intercept` | `true` | 關掉就什麼都不攔、不引導，只留 `jev_search` 工具 |
 | `maxResults` | `10` | 攔截 WebSearch 時回幾筆 |
 
 MCP server 與 CLI 的環境變數：

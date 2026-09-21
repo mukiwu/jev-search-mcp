@@ -8,13 +8,28 @@ import { describeWebSearch, planWebSearch, toWebSearchResult } from '../src/webs
 
 export const DEFAULT_BASE_URL = 'https://jev.s1.dev';
 
+/** The block appended to the conversation's first message, so no CLAUDE.md is needed. */
+export const CONTEXT_BLOCK_NAME = 'jevSearch';
+export const CONTEXT_GUIDANCE = [
+  'The jev-search plugin is active in this session.',
+  'WebSearch is answered by Jev Search: Jev reads the request, picks the sources (the open web, plus Hacker News, Reddit, GitHub, X, arXiv, YouTube, Wikipedia, IMDb or WeChat when the request calls for them) and a time window, and ranks every result by relevance. It falls back to the built-in search only when Jev cannot answer.',
+  'For questions that need the web, such as news, docs, releases, opinions, or what people are saying on Hacker News, Reddit or X, call WebSearch first, with the request as one plain-language sentence that names the site and the time span in words (for example "what Hacker News says about Bun this month"). It answers in a few seconds and covers several sites in one call.',
+  'When the question is really about a site\'s data (exact counts, points, ids, strict date ranges, full comment threads) and the site has a proper API, querying that API directly is the better tool: WebSearch ranks by relevance, not by engagement.',
+  'Use the jev_search MCP tool only when you must force sources or window.',
+].join('\n');
+
+function flag(value, fallback) {
+  if (value === undefined) return fallback;
+  return value === true || value === 'true';
+}
+
 /**
  * Normalise the plugin's userConfig values, tolerating strings from older settings.
  * @param {import('claude-code').PluginOptions} [options]
  */
 export function readOptions(options = {}) {
   const baseUrl = typeof options.baseUrl === 'string' && options.baseUrl.trim() ? options.baseUrl.trim() : DEFAULT_BASE_URL;
-  const intercept = options.intercept === undefined ? true : options.intercept === true || options.intercept === 'true';
+  const intercept = flag(options.intercept, true);
   const n = Number(options.maxResults);
   const maxResults = Number.isInteger(n) && n >= 1 && n <= 40 ? n : 10;
   return { baseUrl, intercept, maxResults };
@@ -54,6 +69,14 @@ export async function answerWithJev($, e, settings) {
  */
 export function register(on, options) {
   const settings = readOptions(options);
+
+  // Guidance travels with the plugin: appended to the first message's context blocks,
+  // beside CLAUDE.md, so every install gets it without the user writing anything.
+  on('prompt.context', ($, e, next) => {
+    if (!settings.intercept) return next(e);
+    const blocks = e.blocks.filter((b) => b.name !== CONTEXT_BLOCK_NAME);
+    return next({ ...e, blocks: [...blocks, { name: CONTEXT_BLOCK_NAME, text: CONTEXT_GUIDANCE }] });
+  });
 
   on('tool.describe', { tool: 'WebSearch' }, ($, e, next) =>
     settings.intercept ? { ...e, description: describeWebSearch(e.description) } : next(e)

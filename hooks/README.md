@@ -2,10 +2,15 @@
 
 這個資料夾是 Claude Code 的 function-hook plugin 部分，`hooks.json` 指到 `jev.js`，引擎載入 plugin 時會執行它的 `register(on, options)`
 
-## 它做的兩件事
+## 它做的三件事
 
-1. `tool.call`，matcher `{ tool: "WebSearch" }`：模型每次呼叫內建 WebSearch，hook 先把 `query`、`allowed_domains`、`blocked_domains` 換成一個 Jev Search 請求，透過 `$.http.fetch` 打 `POST /api/ask`，把 NDJSON 收成一份結果，再組成 WebSearch 輸出 schema 要的形狀回給引擎。模型讀到的格式跟內建的一樣，開頭多一行 Answered by Jev Search，接著是帶相關度百分比的排序清單。搜尋中輸入框下方會釘一行 Jev Search…，成功後通知列跳一行 Jev Search: N results via 哪些來源 in 幾秒，幾秒後自己消掉
-2. `tool.describe`，同樣的 matcher：在 WebSearch 的描述尾端補一段話，提醒模型把查詢寫成一句話、需要時用文字點名站台或時間範圍
+一切引導都由 plugin 自帶，使用者不需要在 CLAUDE.md 寫任何東西
+
+1. `prompt.context`：在對話第一則訊息的 context 區塊末端加一段名為 jevSearch 的說明，告訴模型 WebSearch 已由 Jev 回答、一般網路問題先用 WebSearch、但站台有正規 API 而問題是精確數字或排名時直接打 API 更好。位置跟 CLAUDE.md 同一層，重讀時不會重複加
+2. `tool.call`，matcher `{ tool: "WebSearch" }`：模型每次呼叫內建 WebSearch，hook 先把 `query`、`allowed_domains`、`blocked_domains` 換成一個 Jev Search 請求，透過 `$.http.fetch` 打 `POST /api/ask`，把 NDJSON 收成一份結果，再組成 WebSearch 輸出 schema 要的形狀回給引擎。模型讀到的格式跟內建的一樣，開頭多一行 Answered by Jev Search，接著是帶相關度百分比的排序清單。搜尋中輸入框下方會釘一行 Jev Search…，成功後通知列跳一行 Jev Search: N results via 哪些來源 in 幾秒，幾秒後自己消掉
+3. `tool.describe`，同樣的 matcher：在 WebSearch 的描述尾端補一段話，提醒模型把查詢寫成一句話、需要時用文字點名站台或時間範圍，一般網路問題先用它
+
+曾經試過第四個 hook，攔 Bash 裡直接打搜尋 API 的 curl 並要求改用 WebSearch。實測下來對排名、留言數這類資料題只是多繞一圈，模型最後還是得回頭打 API，反而更慢，所以拿掉了，只留引導讓模型自己判斷
 
 ## 什麼時候退回內建
 
@@ -16,7 +21,7 @@
 - 套用 `allowed_domains` 或 `blocked_domains` 過濾後一筆都不剩
 - hook 本身出錯或超過引擎給的時間預算，這是引擎的預設行為
 
-`intercept` 設定關掉時，兩個 hook 都直接放行，什麼都不做
+`intercept` 設定關掉時，三個 hook 都直接放行，什麼都不做
 
 ## 網域對應
 
@@ -43,7 +48,7 @@
 | 欄位 | 預設 | 說明 |
 | --- | --- | --- |
 | `baseUrl` | `https://jev.s1.dev` | Jev Search 實例，自架時改這裡，同一個值也會餵給 `.mcp.json` 裡的 MCP server |
-| `intercept` | `true` | 關掉就不攔 WebSearch，只留 `jev_search` 工具給模型自己選 |
+| `intercept` | `true` | 關掉就什麼都不做，只留 `jev_search` 工具給模型自己選 |
 | `maxResults` | `10` | 每次攔截回幾筆 |
 
 ## 型別與檢查
@@ -58,8 +63,8 @@ npm run validate          # claude plugin validate，會列出 hook 掛了哪些
 `claude plugin validate` 目前的輸出應該長這樣：
 
 ```
-./jev.js hooks: tool.describe{tool=WebSearch}, tool.call{tool=WebSearch}
-./jev.js calls: $.http.fetch (via answerWithJev), $.ui.log, $.ui.status
+./jev.js hooks: prompt.context, tool.describe{tool=WebSearch}, tool.call{tool=WebSearch}
+./jev.js calls: $.http.fetch (via answerWithJev), $.ui.log, $.ui.status, $.ui.toast
 ```
 
 ## 從 checkout 直接跑

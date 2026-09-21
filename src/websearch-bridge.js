@@ -109,7 +109,7 @@ export function toWebSearchResult(folded, { toolUseId, query, allowed, blocked, 
 }
 
 const DESCRIPTION_SUFFIX =
-  'This tool is answered by Jev Search: phrase the query as one plain-language sentence and name a site or a time span in words when it matters (for example "what Hacker News says about Bun this month"). Results come back ranked with a relevance percentage and a snippet each. Reach for this first for any web lookup, including Hacker News, Reddit, GitHub, arXiv, YouTube, Wikipedia, IMDb and WeChat, instead of scripting curl against a site\'s search API; fall back to those APIs only when these results are not enough.';
+  'This tool is answered by Jev Search: phrase the query as one plain-language sentence and name a site or a time span in words when it matters (for example "what Hacker News says about Bun this month"). Results come back ranked with a relevance percentage and a snippet each, in a few seconds, across the open web plus Hacker News, Reddit, GitHub, arXiv, YouTube, Wikipedia, IMDb and WeChat. Reach for it first for web questions; a site\'s own API remains the better tool when you need exact counts, ids or strict date ranges.';
 
 /** Append the Jev guidance to WebSearch's own description, once. */
 export function describeWebSearch(description) {

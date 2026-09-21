@@ -1,6 +1,6 @@
 {
   "name": "jev-search-mcp",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Jev Search as an MCP server and CLI: plain-language web search with sources and time window chosen by Jev, results ranked by relevance. Zero runtime dependencies.",
   "type": "module",
   "bin": {

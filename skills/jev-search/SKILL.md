@@ -9,7 +9,7 @@ description: Web search through Jev Search. Jev reads a plain-language request, 
 
 - Any question that needs the live web: news, docs, releases, prices, opinions, papers, videos
 - The user asks what Hacker News, Reddit or X thinks about something, or wants the top threads on a topic
-- You are about to curl a site's search API (hn.algolia.com, reddit.com/search.json, api.github.com/search, export.arxiv.org) to answer a question: search first, script only if the ranked results are not enough
+- A general web question you were about to answer by scripting curl against a site's search API: search first, it is one call and a few seconds. When the question is about a site's data (exact counts, points, ids, strict date ranges, full comment threads) and the site has a proper API, the API is the better tool
 
 ## How to call it
 

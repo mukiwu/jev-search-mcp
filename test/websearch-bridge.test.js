@@ -83,6 +83,6 @@ test('toWebSearchResult reports zero hits when the domain filter removes everyth
 test('describeWebSearch appends the Jev guidance exactly once', () => {
   const once = describeWebSearch('Search the web.');
   assert.match(once, /^Search the web\.\n\n.*Jev Search/s);
-  assert.match(once, /instead of scripting curl/, 'steers the model away from hand-rolled site API calls');
+  assert.match(once, /Reach for it first for web questions/);
   assert.equal(describeWebSearch(once), once);
 });
