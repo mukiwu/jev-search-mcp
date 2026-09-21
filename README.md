@@ -18,11 +18,11 @@ Function hooks 是 Claude Code 的 early access 功能，需要 2.1.271 以上�
 { "env": { "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1" } }
 ```
 
-然後把這個 repo 加成 plugin marketplace 並安裝，shell 或 session 裡的斜線指令都可以：
+然後加入 [muki-ai-plugins](https://github.com/mukiwu/muki-ai-plugins) 這個 marketplace 並安裝，shell 或 session 裡的斜線指令都可以：
 
 ```sh
-claude plugin marketplace add mukiwu/jev-search-mcp
-claude plugin install jev-search@jev-search-mcp
+claude plugin marketplace add mukiwu/muki-ai-plugins
+claude plugin install jev-search@muki-ai-plugins
 ```
 
 安裝時會問三個設定：Jev Search 實例網址、要不要攔截 WebSearch、每次回幾筆，全部維持預設就是打官方的 jev.s1.dev。裝完重啟 Claude Code 或執行 `/reload-plugins`
@@ -42,7 +42,7 @@ claude plugin install jev-search@jev-search-mcp
 CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1 claude --plugin-dir .
 ```
 
-不需要發佈任何東西，marketplace 就是 repo 裡的 `.claude-plugin/marketplace.json`
+marketplace 那邊只是一筆指向這個 repo 的紀錄，plugin 本體就是這裡的 `.claude-plugin/plugin.json`、`hooks/`、`.mcp.json` 和 `skills/`，安裝時會 clone 整個 repo
 
 ## 安裝方式二：npm
 
@@ -165,6 +165,7 @@ npm run smoke -- "Rust async runtimes on Hacker News this month"
 - `src/server.js` MCP 進入點，`src/cli.js` npx 進入點
 - `hooks/jev.js` function hook，見 `hooks/README.md`
 - `types/claude-code.d.ts` Claude Code 的型別快照，用 `/plugin-types` 重新產生
+- `.claude-plugin/plugin.json` plugin manifest，marketplace 紀錄在 [muki-ai-plugins](https://github.com/mukiwu/muki-ai-plugins)
 
 ## 授權
 

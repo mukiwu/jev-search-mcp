@@ -17,8 +17,7 @@
     "test": "node --test 'test/*.test.js'",
     "smoke": "node scripts/smoke.js",
     "typecheck:hooks": "tsc -p tsconfig.hooks.json",
-    "validate": "claude plugin validate .claude-plugin/plugin.json",
-    "validate:marketplace": "claude plugin validate ."
+    "validate": "claude plugin validate ."
   },
   "engines": {
     "node": ">=22"
