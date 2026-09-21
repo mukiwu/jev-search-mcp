@@ -1,6 +1,6 @@
 {
   "name": "jev-search",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Web search through Jev Search. Answers Claude Code's built-in WebSearch with Jev (sources and time window chosen by Jev, every result ranked by relevance) and falls back to the built-in search when Jev cannot answer. Also adds the jev_search MCP tool for explicit source or time filters, and a skill on when to use it.",
   "author": {
     "name": "Muki Wu",
