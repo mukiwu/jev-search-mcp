@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "jev-search": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/src/server.js"],
+      "env": {
+        "JEV_SEARCH_BASE_URL": "https://jev.s1.dev"
+      }
+    }
+  }
+}

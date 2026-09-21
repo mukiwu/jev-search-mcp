@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jev-search-mcp",
+  "description": "Jev Search for Claude Code: plain-language web search with sources and time window chosen by Jev, results ranked by relevance.",
+  "owner": {
+    "name": "Muki Wu",
+    "url": "https://github.com/mukiwu"
+  },
+  "plugins": [
+    {
+      "name": "jev-search",
+      "description": "Web search through Jev Search. Adds the jev_search MCP tool (zero install, runs on the Node already on your machine) and a skill that teaches when to reach for it instead of the built-in WebSearch.",
+      "source": "./",
+      "category": "search",
+      "homepage": "https://github.com/mukiwu/jev-search-mcp"
+    }
+  ]
+}

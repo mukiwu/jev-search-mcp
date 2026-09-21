@@ -1,0 +1,13 @@
+{
+  "name": "jev-search",
+  "version": "0.1.0",
+  "description": "Web search through Jev Search: write the request as a sentence, Jev picks the sources and time window, searches Google, DuckDuckGo, Yandex, Hacker News, Reddit, GitHub, X, arXiv, YouTube, Wikipedia, IMDb or WeChat, and ranks every result by relevance. Adds the jev_search MCP tool plus a skill on when and how to use it.",
+  "author": {
+    "name": "Muki Wu",
+    "url": "https://github.com/mukiwu"
+  },
+  "homepage": "https://github.com/mukiwu/jev-search-mcp",
+  "repository": "https://github.com/mukiwu/jev-search-mcp",
+  "license": "MIT",
+  "keywords": ["search", "web-search", "mcp", "jev", "search1api", "typesafe"]
+}
