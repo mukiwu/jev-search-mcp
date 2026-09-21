@@ -1,0 +1,23 @@
+{
+  "name": "jev-search-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server that exposes Jev Search (jev.s1.dev or a self-hosted instance) as a jev_search tool for Claude Code and Codex.",
+  "bin": {
+    "jev-search-mcp": "./src/server.js"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.5"
+  }
+}
